@@ -1,111 +1,102 @@
 import streamlit as st
-import matplotlib.pyplot as plt
 
-st.title("🧠 Simulateur kiné AVC interactif (V3)")
+st.title("🧠 Simulateur clinique kiné AVC interactif (V4)")
 
 # ----------------------------
-# PATIENT
+# PATIENT NEUROLOGIQUE
 # ----------------------------
 
 if "patient" not in st.session_state:
+
     st.session_state.patient = {
-        "motricite_MS": 40,
-        "motricite_MI": 45,
-        "equilibre": 40,
-        "spasticite": 60,
-        "controle_moteur": 35
+        "hemisphere": "Gauche",
+        "severite": "Modéré",
+
+        # contrôle moteur fin
+        "controle_selectif": 40,
+
+        # synergies
+        "synergie_flexion_MS": 70,
+        "synergie_extension_MI": 65,
+
+        # tonus
+        "spasticite_MS": 60,
+        "spasticite_MI": 55,
+
+        # fonction
+        "equilibre": 45,
+        "marche": 40
     }
 
 p = st.session_state.patient
 
 # ----------------------------
-# DASHBOARD GLOBAL
+# AFFICHAGE PATIENT
 # ----------------------------
 
-st.subheader("📊 Profil fonctionnel")
+st.subheader("👤 Profil neurologique")
 
-fig, ax = plt.subplots()
-ax.bar(p.keys(), p.values())
-ax.set_ylim(0, 100)
-st.pyplot(fig)
+st.write("Hémisphère atteint :", p["hemisphere"])
+st.write("Sévérité AVC :", p["severite"])
 
 # ----------------------------
-# SCORE GLOBAL KINE
+# LECTURE CLINIQUE AUTOMATIQUE
 # ----------------------------
 
-st.subheader("🧠 Score clinique global")
+st.subheader("🧠 Raisonnement clinique")
 
-autonomie = (p["motricite_MI"] + p["equilibre"] + p["controle_moteur"]) / 3
+if p["synergie_flexion_MS"] > 60:
+    st.write("➡️ Synergie de flexion MS dominante → perte de dissociation épaule/coude/main")
 
-st.write(f"Autonomie fonctionnelle : {int(autonomie)}/100")
+if p["synergie_extension_MI"] > 60:
+    st.write("➡️ Extension MI en bloc → circumduction probable en marche")
 
-if autonomie > 70:
-    st.success("Patient autonome avec légère gêne")
-elif autonomie > 50:
-    st.warning("Patient partiellement dépendant")
-else:
-    st.error("Patient dépendant nécessitant aide")
+if p["spasticite_MI"] > 50:
+    st.write("➡️ Spasticité MI → risque équin + appui instable")
+
+if p["controle_selectif"] < 50:
+    st.write("➡️ Faible contrôle sélectif → mouvements globalisés / synergies")
 
 # ----------------------------
-# MARCHE (SIMPLIFIEE VISUELLE)
+# SIMULATION MARCHE (VISUEL SIMPLE)
 # ----------------------------
 
-st.subheader("🚶 Simulation de marche")
+st.subheader("🚶 Analyse de la marche")
 
-marche = autonomie
+marche = (p["controle_selectif"] + p["equilibre"]) / 2
 
 if marche > 70:
-    st.write("🚶 ➡️➡️ Marche quasi normale")
-    st.write("Bras : balancement normal")
+    st.success("Marche fonctionnelle avec légère asymétrie")
 elif marche > 50:
-    st.write("🚶 ➡️   Marche avec compensation")
-    st.write("Bras : diminution du ballant")
+    st.warning("Marche avec compensations visibles (circumduction)")
 else:
-    st.write("🚶 ❌ Marche instable / assistance nécessaire")
-    st.write("Bras : absence de balancement")
-
-# ----------------------------
-# IA EXPLICATIVE (LOGIQUE CLINIQUE)
-# ----------------------------
-
-st.subheader("🧠 Analyse kinésithérapique (IA pédagogique)")
-
-if p["motricite_MI"] < 50:
-    st.write("➡️ Faiblesse MI → compensation par circumduction lors de la marche")
-
-if p["spasticite"] > 50:
-    st.write("➡️ Spasticité élevée → risque de pied équin (triceps sural dominant)")
-
-if p["equilibre"] < 50:
-    st.write("➡️ Déficit d'équilibre → stratégie d'élargissement du polygone de sustentation")
-
-if p["controle_moteur"] < 50:
-    st.write("➡️ Contrôle moteur réduit → mouvements désorganisés et synergies pathologiques")
+    st.error("Marche pathologique nécessitant aide")
 
 # ----------------------------
 # INTERVENTIONS KINE
 # ----------------------------
 
-st.subheader("🎮 Interventions kinésithérapiques")
+st.subheader("🎮 Rééducation kinésithérapique")
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    if st.button("Équilibre"):
-        p["equilibre"] += 10
-        p["controle_moteur"] += 5
-        p["spasticite"] -= 5
+    if st.button("Facilitation motrice"):
+        p["controle_selectif"] += 8
+        p["synergie_flexion_MS"] -= 5
+        st.success("✔ amélioration contrôle moteur")
 
 with col2:
-    if st.button("Renforcement"):
-        p["motricite_MS"] += 8
-        p["motricite_MI"] += 8
-        p["controle_moteur"] += 5
+    if st.button("Inhibition spasticité"):
+        p["spasticite_MI"] -= 10
+        p["spasticite_MS"] -= 5
+        st.success("✔ diminution tonus")
 
 with col3:
-    if st.button("Inhibition spasticité"):
-        p["spasticite"] -= 15
-        p["controle_moteur"] += 5
+    if st.button("Travail équilibre"):
+        p["equilibre"] += 10
+        p["controle_selectif"] += 3
+        st.success("✔ amélioration stabilité")
 
 # ----------------------------
 # LIMITES
@@ -120,10 +111,14 @@ for k in p:
 
 if st.button("Reset patient"):
     st.session_state.patient = {
-        "motricite_MS": 40,
-        "motricite_MI": 45,
-        "equilibre": 40,
-        "spasticite": 60,
-        "controle_moteur": 35
+        "hemisphere": "Gauche",
+        "severite": "Modéré",
+        "controle_selectif": 40,
+        "synergie_flexion_MS": 70,
+        "synergie_extension_MI": 65,
+        "spasticite_MS": 60,
+        "spasticite_MI": 55,
+        "equilibre": 45,
+        "marche": 40
     }
     st.success("Patient réinitialisé")
