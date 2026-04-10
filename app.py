@@ -1,7 +1,6 @@
 import streamlit as st
-import random
 
-st.title("🧠 Simulateur kiné AVC interactif (V5 - Formation avancée)")
+st.title("🧠 Simulateur kiné AVC interactif (V6)")
 
 # ----------------------------
 # PATIENT
@@ -22,70 +21,55 @@ if "patient" not in st.session_state:
 p = st.session_state.patient
 
 # ----------------------------
-# NAVIGATION SIMPLE
+# MODE
 # ----------------------------
 
 mode = st.selectbox(
     "Mode d’apprentissage",
-    ["🦶 Marche", "📈 Évolution", "🧠 Cas clinique", "🤖 Tuteur IA"]
+    ["🦶 Marche", "📈 Évolution", "🎓 ECOS kiné", "🤖 Tuteur IA"]
 )
 
 # =========================================================
-# 🦶 1. ANIMATION DE MARCHE (SIMPLE VISUEL KINE)
+# 🦶 1. MARCHE (VISUEL KINE)
 # =========================================================
 
 if mode == "🦶 Marche":
 
-    st.subheader("🚶 Simulation de marche")
+    st.subheader("🚶 Analyse de la marche")
 
     marche = (p["controle_selectif"] + p["equilibre"]) / 2
 
-    if marche > 70:
-        st.success("🟢 Marche quasi normale")
-        st.write("→ Bon contrôle du membre inférieur")
-        st.write("→ Ballant des bras présent")
-    elif marche > 50:
-        st.warning("🟠 Marche avec compensations")
-        st.write("→ Circumduction possible")
-        st.write("→ Diminution du ballant du bras")
-    else:
-        st.error("🔴 Marche pathologique")
-        st.write("→ Aide nécessaire")
-        st.write("→ Instabilité importante")
+    st.write("Score marche :", int(marche))
 
-    # mini “animation symbolique”
-    steps = ["🦶——🦶", "🦶—🦶", "🦶🦶"]
-    st.write("Simulation visuelle :", random.choice(steps))
-st.subheader("🎞️ Analyse visuelle de la marche")
+    col1, col2, col3 = st.columns(3)
 
-marche = (p["controle_selectif"] + p["equilibre"]) / 2
+    with col1:
+        st.write("Phase d'appui")
+        if marche > 70:
+            st.write("🟢 stable")
+        elif marche > 50:
+            st.write("🟠 instable")
+        else:
+            st.write("🔴 très instable")
 
-col1, col2, col3 = st.columns(3)
+    with col2:
+        st.write("Phase oscillante")
+        if p["controle_selectif"] > 50:
+            st.write("🟢 contrôle correct")
+        else:
+            st.write("🔴 circumduction / bloc")
 
-with col1:
-    st.write("Phase d'appui")
-    if marche > 70:
-        st.write("🟢 stable")
-    elif marche > 50:
-        st.write("🟠 instable")
-    else:
-        st.write("🔴 très instable")
+    with col3:
+        st.write("Bras")
+        if p["synergie_extension_MI"] > 60:
+            st.write("🔴 absence de balancement")
+        else:
+            st.write("🟢 balancement partiel")
 
-with col2:
-    st.write("Phase oscillante")
-    if p["controle_selectif"] > 50:
-        st.write("🟢 contrôle correct")
-    else:
-        st.write("🔴 circumduction / bloc")
+    st.write("🎞️ Simulation visuelle : 🦶—🦶 / 🦶🦶 / 🦶——🦶")
 
-with col3:
-    st.write("Bras")
-    if p["synergie_extension_MI"] > 60:
-        st.write("🔴 absence de balancement")
-    else:
-        st.write("🟢 balancement partiel")
 # =========================================================
-# 📈 2. EVOLUTION DANS LE TEMPS
+# 📈 2. EVOLUTION
 # =========================================================
 
 elif mode == "📈 Évolution":
@@ -94,16 +78,15 @@ elif mode == "📈 Évolution":
 
     st.write(f"Jour actuel : J{p['jour']}")
 
-    if st.button("Avancer dans le temps (+7 jours)"):
+    if st.button("Avancer de 7 jours"):
 
         p["jour"] += 7
 
-        # évolution légère naturelle
+        # progression naturelle rééducation
         p["controle_selectif"] += 2
         p["equilibre"] += 3
         p["spasticite_MI"] -= 2
 
-    st.write("État fonctionnel :")
     st.write("Contrôle moteur :", p["controle_selectif"])
     st.write("Équilibre :", p["equilibre"])
     st.write("Spasticité MI :", p["spasticite_MI"])
@@ -112,57 +95,13 @@ elif mode == "📈 Évolution":
         st.success("Phase de récupération subaiguë atteinte")
 
 # =========================================================
-# 🧠 3. CAS CLINIQUE (TYPE EXAMEN)
+# 🎓 3. ECOS KINE
 # =========================================================
 
-elif mode == "🧠 Cas clinique":
+elif mode == "🎓 ECOS kiné":
 
-    st.subheader("📋 Cas clinique étudiant")
+    st.subheader("🎓 Station clinique ECOS")
 
-    cas = random.choice([
-        "Patient de 72 ans présentant une hémiparésie droite brutale.",
-        "Patient de 65 ans avec troubles de la marche post-AVC ischémique.",
-        "Patient avec spasticité importante et perte de sélectivité motrice."
-    ])
+    st.write("Patient AVC avec hémiparésie et troubles de la marche.")
 
-    st.write(cas)
-
-    question = st.selectbox(
-        "Quelle est la priorité kinésithérapique ?",
-        [
-            "Renforcement musculaire global",
-            "Rééducation du contrôle moteur sélectif",
-            "Immobilisation prolongée",
-            "Travail uniquement passif"
-        ]
-    )
-
-    if st.button("Valider réponse"):
-
-        if question == "Rééducation du contrôle moteur sélectif":
-            st.success("✔ Bonne réponse kinésithérapique")
-        else:
-            st.error("❌ Réponse non optimale")
-
-# =========================================================
-# 🤖 4. TUTEUR IA (EXPLICATION CLINIQUE)
-# =========================================================
-
-elif mode == "🤖 Tuteur IA":
-
-    st.subheader("🧠 Analyse kinésithérapique guidée")
-
-    if p["synergie_extension_MI"] > 60:
-        st.write("➡️ Synergie extension MI → marche en bloc + circumduction")
-
-    if p["spasticite_MI"] > 50:
-        st.write("➡️ Spasticité triceps sural → risque pied équin")
-
-    if p["controle_selectif"] < 50:
-        st.write("➡️ Déficit de sélectivité → perte de dissociation segmentaire")
-
-    if p["equilibre"] < 50:
-        st.write("➡️ Instabilité posturale → stratégie de compensation")
-
-    st.write("---")
-    st.write("💡 Objectif kiné : restaurer le contrôle moteur avant la force brute")
+    question = st
