@@ -1,131 +1,141 @@
 import streamlit as st
+import random
 
-st.title("🧠 Simulateur clinique kiné AVC interactif (V4)")
+st.title("🧠 Simulateur kiné AVC interactif (V5 - Formation avancée)")
 
 # ----------------------------
-# PATIENT NEUROLOGIQUE
+# PATIENT
 # ----------------------------
 
 if "patient" not in st.session_state:
-
     st.session_state.patient = {
-        # variables qualitatives (NON numériques)
-        "hemisphere": "Gauche",
-        "severite": "Modéré",
-
-        # variables numériques
         "controle_selectif": 40,
         "synergie_flexion_MS": 70,
         "synergie_extension_MI": 65,
         "spasticite_MS": 60,
         "spasticite_MI": 55,
         "equilibre": 45,
-        "marche": 40
+        "marche": 40,
+        "jour": 0
     }
 
 p = st.session_state.patient
 
 # ----------------------------
-# AFFICHAGE PATIENT
+# NAVIGATION SIMPLE
 # ----------------------------
 
-st.subheader("👤 Profil neurologique")
+mode = st.selectbox(
+    "Mode d’apprentissage",
+    ["🦶 Marche", "📈 Évolution", "🧠 Cas clinique", "🤖 Tuteur IA"]
+)
 
-st.write("Hémisphère atteint :", p["hemisphere"])
-st.write("Sévérité AVC :", p["severite"])
+# =========================================================
+# 🦶 1. ANIMATION DE MARCHE (SIMPLE VISUEL KINE)
+# =========================================================
 
-# ----------------------------
-# RAISONNEMENT CLINIQUE
-# ----------------------------
+if mode == "🦶 Marche":
 
-st.subheader("🧠 Raisonnement clinique")
+    st.subheader("🚶 Simulation de marche")
 
-if p["synergie_flexion_MS"] > 60:
-    st.write("➡️ Synergie de flexion MS dominante → perte de dissociation MS")
+    marche = (p["controle_selectif"] + p["equilibre"]) / 2
 
-if p["synergie_extension_MI"] > 60:
-    st.write("➡️ Synergie extension MI → circumduction probable en marche")
+    if marche > 70:
+        st.success("🟢 Marche quasi normale")
+        st.write("→ Bon contrôle du membre inférieur")
+        st.write("→ Ballant des bras présent")
+    elif marche > 50:
+        st.warning("🟠 Marche avec compensations")
+        st.write("→ Circumduction possible")
+        st.write("→ Diminution du ballant du bras")
+    else:
+        st.error("🔴 Marche pathologique")
+        st.write("→ Aide nécessaire")
+        st.write("→ Instabilité importante")
 
-if p["spasticite_MI"] > 50:
-    st.write("➡️ Spasticité MI → risque équin + instabilité")
+    # mini “animation symbolique”
+    steps = ["🦶——🦶", "🦶—🦶", "🦶🦶"]
+    st.write("Simulation visuelle :", random.choice(steps))
 
-if p["controle_selectif"] < 50:
-    st.write("➡️ Faible contrôle sélectif → mouvements globalisés")
+# =========================================================
+# 📈 2. EVOLUTION DANS LE TEMPS
+# =========================================================
 
-# ----------------------------
-# MARCHE
-# ----------------------------
+elif mode == "📈 Évolution":
 
-st.subheader("🚶 Analyse de la marche")
+    st.subheader("📊 Évolution du patient")
 
-marche = (p["controle_selectif"] + p["equilibre"]) / 2
+    st.write(f"Jour actuel : J{p['jour']}")
 
-st.write("Score marche :", int(marche))
+    if st.button("Avancer dans le temps (+7 jours)"):
 
-if marche > 70:
-    st.success("Marche fonctionnelle avec légère asymétrie")
-elif marche > 50:
-    st.warning("Marche avec compensations (circumduction possible)")
-else:
-    st.error("Marche pathologique nécessitant aide")
+        p["jour"] += 7
 
-# ----------------------------
-# INTERVENTIONS KINE
-# ----------------------------
+        # évolution légère naturelle
+        p["controle_selectif"] += 2
+        p["equilibre"] += 3
+        p["spasticite_MI"] -= 2
 
-st.subheader("🎮 Rééducation kinésithérapique")
+    st.write("État fonctionnel :")
+    st.write("Contrôle moteur :", p["controle_selectif"])
+    st.write("Équilibre :", p["equilibre"])
+    st.write("Spasticité MI :", p["spasticite_MI"])
 
-col1, col2, col3 = st.columns(3)
+    if p["jour"] >= 30:
+        st.success("Phase de récupération subaiguë atteinte")
 
-with col1:
-    if st.button("Facilitation motrice"):
-        p["controle_selectif"] += 8
-        p["synergie_flexion_MS"] -= 5
-        st.success("✔ contrôle moteur amélioré")
+# =========================================================
+# 🧠 3. CAS CLINIQUE (TYPE EXAMEN)
+# =========================================================
 
-with col2:
-    if st.button("Inhibition spasticité"):
-        p["spasticite_MI"] -= 10
-        p["spasticite_MS"] -= 5
-        st.success("✔ tonus diminué")
+elif mode == "🧠 Cas clinique":
 
-with col3:
-    if st.button("Travail équilibre"):
-        p["equilibre"] += 10
-        p["controle_selectif"] += 3
-        st.success("✔ stabilité améliorée")
+    st.subheader("📋 Cas clinique étudiant")
 
-# ----------------------------
-# LIMITES (CORRIGÉ)
-# ----------------------------
+    cas = random.choice([
+        "Patient de 72 ans présentant une hémiparésie droite brutale.",
+        "Patient de 65 ans avec troubles de la marche post-AVC ischémique.",
+        "Patient avec spasticité importante et perte de sélectivité motrice."
+    ])
 
-numeric_keys = [
-    "controle_selectif",
-    "synergie_flexion_MS",
-    "synergie_extension_MI",
-    "spasticite_MS",
-    "spasticite_MI",
-    "equilibre",
-    "marche"
-]
+    st.write(cas)
 
-for k in numeric_keys:
-    p[k] = max(0, min(100, p[k]))
+    question = st.selectbox(
+        "Quelle est la priorité kinésithérapique ?",
+        [
+            "Renforcement musculaire global",
+            "Rééducation du contrôle moteur sélectif",
+            "Immobilisation prolongée",
+            "Travail uniquement passif"
+        ]
+    )
 
-# ----------------------------
-# RESET
-# ----------------------------
+    if st.button("Valider réponse"):
 
-if st.button("Reset patient"):
-    st.session_state.patient = {
-        "hemisphere": "Gauche",
-        "severite": "Modéré",
-        "controle_selectif": 40,
-        "synergie_flexion_MS": 70,
-        "synergie_extension_MI": 65,
-        "spasticite_MS": 60,
-        "spasticite_MI": 55,
-        "equilibre": 45,
-        "marche": 40
-    }
-    st.success("Patient réinitialisé")
+        if question == "Rééducation du contrôle moteur sélectif":
+            st.success("✔ Bonne réponse kinésithérapique")
+        else:
+            st.error("❌ Réponse non optimale")
+
+# =========================================================
+# 🤖 4. TUTEUR IA (EXPLICATION CLINIQUE)
+# =========================================================
+
+elif mode == "🤖 Tuteur IA":
+
+    st.subheader("🧠 Analyse kinésithérapique guidée")
+
+    if p["synergie_extension_MI"] > 60:
+        st.write("➡️ Synergie extension MI → marche en bloc + circumduction")
+
+    if p["spasticite_MI"] > 50:
+        st.write("➡️ Spasticité triceps sural → risque pied équin")
+
+    if p["controle_selectif"] < 50:
+        st.write("➡️ Déficit de sélectivité → perte de dissociation segmentaire")
+
+    if p["equilibre"] < 50:
+        st.write("➡️ Instabilité posturale → stratégie de compensation")
+
+    st.write("---")
+    st.write("💡 Objectif kiné : restaurer le contrôle moteur avant la force brute")
