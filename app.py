@@ -1,36 +1,58 @@
 import streamlit as st
 import random
 
-st.title("🧠 Simulation patient AVC")
+st.title("🧠 Générateur de cas clinique AVC (IA)")
 
 nom = st.text_input("Nom du patient")
-age = st.slider("Âge du patient", 40, 100, 70)
+age = st.slider("Âge", 40, 100, 70)
 
-if st.button("Créer patient"):
+niveau = st.selectbox("Sévérité de l'AVC", ["Léger", "Modéré", "Sévère"])
 
-    st.subheader("👤 Patient généré")
+if st.button("Générer cas clinique"):
+
+    st.subheader("👤 Patient")
 
     st.write(f"Nom : {nom}")
-    st.write(f"Âge : {age} ans")
+    st.write(f"Âge : {age}")
+    st.write(f"Sévérité : {niveau}")
 
-    st.write("🧠 Simulation en cours...")
+    st.subheader("🧠 Cas clinique généré")
 
-    # Déficiences possibles
-    deficiences = [
-        "Hémiparésie (faiblesse d’un côté du corps)",
-        "Aphasie (troubles du langage)",
-        "Troubles de l’équilibre",
-        "Négligence spatiale",
-        "Troubles de la coordination"
-    ]
+    # logique simple mais cohérente
+    if niveau == "Léger":
+        deficits = [
+            "Faiblesse légère d’un membre supérieur",
+            "Légers troubles du langage",
+            "Fatigabilité à l’effort"
+        ]
+        evolution = "Bonne récupération attendue avec rééducation"
 
-    selection = random.sample(deficiences, 3)
+    elif niveau == "Modéré":
+        deficits = [
+            "Hémiparésie partielle",
+            "Aphasie modérée",
+            "Troubles de la marche"
+        ]
+        evolution = "Récupération partielle possible avec séquelles"
 
-    st.subheader("⚠️ Déficiences probables")
+    else:
+        deficits = [
+            "Hémiplégie importante",
+            "Aphasie sévère",
+            "Perte d’autonomie"
+        ]
+        evolution = "Pronostic réservé, dépend de la prise en charge"
 
-    for d in selection:
+    st.subheader("⚠️ Déficits")
+
+    for d in deficits:
         st.write("• " + d)
 
-    st.subheader("🧍 Comportement")
+    st.subheader("📈 Évolution probable")
+    st.write(evolution)
 
-    st.write("Le patient présente une lenteur dans les mouvements et une fatigabilité importante.")
+    st.subheader("🧾 Synthèse IA")
+    st.write(
+        f"Patient de {age} ans présentant un AVC {niveau.lower()} avec "
+        f"atteinte neurologique compatible. Nécessite prise en charge neuro-rééducative."
+    )
