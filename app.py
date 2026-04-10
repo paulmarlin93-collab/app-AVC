@@ -1,103 +1,120 @@
 import streamlit as st
+import matplotlib.pyplot as plt
 
-st.title("🧠 Simulateur kiné AVC interactif (V1)")
+st.title("🧠 Simulateur kiné AVC interactif (V2)")
 
-st.write("Modélisation fonctionnelle d'un patient AVC et effets des interventions kinésithérapiques.")
+st.write("Visualisation fonctionnelle + simulation de marche + effets des interventions.")
 
 # ----------------------------
-# 1. INITIALISATION PATIENT
+# ETAT PATIENT
 # ----------------------------
 
 if "patient" not in st.session_state:
 
     st.session_state.patient = {
-        "motricite_MS": 40,   # membre supérieur
-        "motricite_MI": 45,   # membre inférieur
+        "motricite_MS": 40,
+        "motricite_MI": 45,
         "equilibre": 40,
         "spasticite": 60,
         "controle_moteur": 35
     }
 
-patient = st.session_state.patient
+p = st.session_state.patient
 
 # ----------------------------
-# 2. AFFICHAGE ETAT ACTUEL
+# BARRES VISUELLES
 # ----------------------------
 
-st.subheader("👤 État fonctionnel du patient (0 = mauvais / 100 = normal)")
+st.subheader("📊 Profil fonctionnel du patient")
 
-st.write("**Motricité membre supérieur :**", patient["motricite_MS"])
-st.write("**Motricité membre inférieur :**", patient["motricite_MI"])
-st.write("**Équilibre :**", patient["equilibre"])
-st.write("**Contrôle moteur :**", patient["controle_moteur"])
-st.write("**Spasticité (inverse fonctionnel) :**", patient["spasticite"])
+labels = list(p.keys())
+values = list(p.values())
+
+fig, ax = plt.subplots()
+ax.bar(labels, values)
+ax.set_ylim(0, 100)
+ax.set_ylabel("Score fonctionnel")
+ax.set_title("Profil moteur du patient AVC")
+
+st.pyplot(fig)
 
 # ----------------------------
-# 3. TRADUCTION CLINIQUE
+# LECTURE CLINIQUE
 # ----------------------------
 
 st.subheader("🧠 Lecture clinique")
 
-if patient["motricite_MI"] < 50:
-    st.write("➡️ Hémiparésie des membres inférieurs")
-    st.write("➡️ Risque de circumduction / instabilité à la marche")
+if p["motricite_MI"] < 50:
+    st.write("➡️ Hémiparésie MI → instabilité à la marche")
 
-if patient["spasticite"] > 50:
-    st.write("➡️ Spasticité modérée à importante")
-    st.write("➡️ Risque de pied équin et raideur")
+if p["spasticite"] > 50:
+    st.write("➡️ Spasticité élevée → risque pied équin")
 
-if patient["equilibre"] < 50:
-    st.write("➡️ Trouble de l'équilibre")
-    st.write("➡️ Risque de chute augmenté")
+if p["equilibre"] < 50:
+    st.write("➡️ Trouble équilibre → risque de chute")
 
 # ----------------------------
-# 4. INTERVENTIONS KINE
+# SIMULATION DE MARCHE
+# ----------------------------
+
+st.subheader("🚶 Simulation de marche (fonctionnelle)")
+
+# score global marche
+marche = (p["motricite_MI"] + p["equilibre"] + p["controle_moteur"]) / 3
+
+st.write(f"Score global de marche : {int(marche)}/100")
+
+if marche > 70:
+    st.success("🚶 Marche quasi normale avec légère asymétrie")
+elif marche > 50:
+    st.warning("🚶 Marche instable avec compensation visible (circumduction possible)")
+elif marche > 30:
+    st.error("🚶 Marche difficile avec aide nécessaire")
+else:
+    st.error("🚶 Déambulation impossible sans assistance")
+
+# ----------------------------
+# INTERVENTIONS KINE
 # ----------------------------
 
 st.subheader("🎮 Interventions kinésithérapiques")
 
 col1, col2, col3 = st.columns(3)
 
-# --- Equilibre ---
 with col1:
-    if st.button("Travail équilibre"):
-        patient["equilibre"] += 10
-        patient["controle_moteur"] += 5
-        patient["spasticite"] -= 5
-        st.success("✔ Amélioration de l'équilibre")
+    if st.button("Équilibre"):
+        p["equilibre"] += 10
+        p["controle_moteur"] += 5
+        p["spasticite"] -= 5
+        st.success("Amélioration équilibre")
 
-# --- Renforcement ---
 with col2:
-    if st.button("Renforcement moteur"):
-        patient["motricite_MS"] += 8
-        patient["motricite_MI"] += 8
-        patient["controle_moteur"] += 5
-        st.success("✔ Amélioration motricité")
+    if st.button("Renforcement"):
+        p["motricite_MS"] += 8
+        p["motricite_MI"] += 8
+        p["controle_moteur"] += 5
+        st.success("Amélioration motricité")
 
-# --- Inhibition spasticité ---
 with col3:
     if st.button("Inhibition spasticité"):
-        patient["spasticite"] -= 15
-        patient["controle_moteur"] += 5
-        st.success("✔ Diminution spasticité")
+        p["spasticite"] -= 15
+        p["controle_moteur"] += 5
+        st.success("Spasticité réduite")
 
 # ----------------------------
-# 5. LIMITES DES VALEURS
+# LIMITES
 # ----------------------------
 
-for key in patient:
-    if patient[key] > 100:
-        patient[key] = 100
-    if patient[key] < 0:
-        patient[key] = 0
+for k in p:
+    p[k] = max(0, min(100, p[k]))
 
 # ----------------------------
-# 6. RESET PATIENT
+# RESET
 # ----------------------------
 
-st.subheader("🔄 Réinitialisation")
+st.subheader("🔄 Reset")
 
-if st.button("Reset patient"):
+if st.button("Réinitialiser patient"):
     st.session_state.patient = {
         "motricite_MS": 40,
         "motricite_MI": 45,
