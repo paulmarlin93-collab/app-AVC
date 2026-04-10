@@ -153,43 +153,97 @@ mode = st.selectbox(
 
 if mode == "🦶 Marche":
 
-    st.subheader("🚶 Marche pathologique AVC (visualisation)")
+    st.subheader("🚶 Marche AVC - Visualisation V2")
 
     score = (p["deficits"]["controle_moteur"] + p["deficits"]["equilibre"]) / 2
 
     st.write("Score marche :", int(score))
 
-    # ---------------- VISUEL SIMPLE ----------------
-    step = st.slider("Phase de marche (0 = appui / 1 = oscillant)", 0, 1, 0)
+    # ==============================
+    # 🎮 CYCLE DE MARCHE (ANIMATION SIMPLE)
+    # ==============================
 
-    # logique AVC
-    if p["patterns"]["marche"] == "circumduction":
+    phase = st.slider("Cycle de marche (0 → 100%)", 0, 100, 0)
 
-        if step == 0:
-            st.write("🦶➡️🦶  Appui : instable, extension dominante")
-            st.write("Tronc : légère inclinaison")
+    # transformation en phase clinique
+    appui = phase < 50
+
+    # ==============================
+    # 🧠 LOGIQUE AVC
+    # ==============================
+
+    spasticite = p["deficits"]["spasticite"]
+    controle = p["deficits"]["controle_moteur"]
+    equilibre = p["deficits"]["equilibre"]
+
+    # ==============================
+    # 🦶 VISUEL (STICK FIGURE TEXTUEL)
+    # ==============================
+
+    st.write("### 👣 Représentation du pas")
+
+    if appui:
+        # PHASE APPUI
+        st.write("🦵 JAMBE GAUCHE : APPUI")
+
+        if spasticite > 60:
+            st.write("⚠️ Genou en extension rigide (spasticité)")
         else:
-            st.write("🦶↺     Oscillation : circumduction du MI")
-            st.write("Genou : flexion réduite")
+            st.write("✔ Appui relativement stable")
 
-    # bras
-    if p["patterns"]["synergie_flexion_MS"] > 60:
-        st.write("💪 Bras : absence de balancement, flexion en synergie")
+        st.write("🦵 JAMBE DROITE : préparation oscillation")
 
-    # classification
-    if score > 70:
-        st.success("Marche fonctionnelle proche normale")
-    elif score > 50:
-        st.warning("Marche avec compensations visibles")
     else:
-        st.error("Marche pathologique sévère")
+        # PHASE OSCILLATION
+        st.write("🦵 JAMBE DROITE : OSCILLATION")
+
+        if controle < 50:
+            st.write("↪ Circumduction visible (déficit contrôle moteur)")
+        else:
+            st.write("✔ Flexion de hanche correcte")
+
+        st.write("🦵 JAMBE GAUCHE : appui")
+
+    # ==============================
+    # 💪 MEMBRE SUPÉRIEUR
+    # ==============================
+
+    st.write("### 💪 Membres supérieurs")
+
+    if controle < 50:
+        st.write("💪 Bras droit : absence de balancement (synergie)")
+    else:
+        st.write("💪 Bras droit : léger balancement")
+
+    # ==============================
+    # 🧠 INTERPRÉTATION KINÉ
+    # ==============================
 
     st.write("---")
+    st.write("🧠 Analyse kinésithérapique")
 
-    st.write("🧠 Lecture kinésithérapique :")
+    if controle < 50:
+        st.write("➡️ Déficit contrôle moteur → marche en synergie")
 
-    for a in analyse_clinique(p):
-        st.write("➡️", a)
+    if spasticite > 60:
+        st.write("➡️ Hypertonie → extension prédominante du MI")
+
+    if equilibre < 50:
+        st.write("➡️ Instabilité → stratégie de compensation (base élargie)")
+
+    if controle < 50 and spasticite > 60:
+        st.write("🎯 Profil typique AVC spastique en phase subaiguë")
+
+    # ==============================
+    # 🎯 SCORE GLOBAL
+    # ==============================
+
+    if score > 70:
+        st.success("Marche fonctionnelle")
+    elif score > 50:
+        st.warning("Marche avec compensations")
+    else:
+        st.error("Marche pathologique sévère")
 
 
 # =========================================================
