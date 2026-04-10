@@ -153,31 +153,43 @@ mode = st.selectbox(
 
 if mode == "🦶 Marche":
 
-    st.subheader("🚶 Analyse de la marche")
+    st.subheader("🚶 Marche pathologique AVC (visualisation)")
 
     score = (p["deficits"]["controle_moteur"] + p["deficits"]["equilibre"]) / 2
 
     st.write("Score marche :", int(score))
-    st.write("Aide :", p["fonctionnel"]["aide"])
 
+    # ---------------- VISUEL SIMPLE ----------------
+    step = st.slider("Phase de marche (0 = appui / 1 = oscillant)", 0, 1, 0)
+
+    # logique AVC
+    if p["patterns"]["marche"] == "circumduction":
+
+        if step == 0:
+            st.write("🦶➡️🦶  Appui : instable, extension dominante")
+            st.write("Tronc : légère inclinaison")
+        else:
+            st.write("🦶↺     Oscillation : circumduction du MI")
+            st.write("Genou : flexion réduite")
+
+    # bras
+    if p["patterns"]["synergie_flexion_MS"] > 60:
+        st.write("💪 Bras : absence de balancement, flexion en synergie")
+
+    # classification
     if score > 70:
-        st.success("Marche proche normale")
+        st.success("Marche fonctionnelle proche normale")
     elif score > 50:
-        st.warning("Marche avec compensations")
+        st.warning("Marche avec compensations visibles")
     else:
-        st.error("Marche pathologique")
+        st.error("Marche pathologique sévère")
 
     st.write("---")
 
-    st.write("🧠 Analyse clinique :")
+    st.write("🧠 Lecture kinésithérapique :")
+
     for a in analyse_clinique(p):
         st.write("➡️", a)
-
-    st.write("---")
-
-    st.write("🧠 Stratégies kiné :")
-    for s in strategies_kine(p):
-        st.write("✔", s)
 
 
 # =========================================================
