@@ -153,11 +153,101 @@ mode = st.selectbox(
 
 if mode == "🦶 Marche":
 
-    st.subheader("🚶 Marche AVC - Visualisation V2")
+    import time
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    st.subheader("🚶 Marche AVC - Animation V3")
 
     score = (p["deficits"]["controle_moteur"] + p["deficits"]["equilibre"]) / 2
 
     st.write("Score marche :", int(score))
+
+    run = st.button("▶️ Lancer animation")
+
+    # ==============================
+    # 🧠 PARAMÈTRES PATIENT
+    # ==============================
+
+    spasticite = p["deficits"]["spasticite"]
+    controle = p["deficits"]["controle_moteur"]
+
+    # ==============================
+    # 🎥 ANIMATION
+    # ==============================
+
+    if run:
+
+        placeholder = st.empty()
+
+        for t in range(0, 100):
+
+            fig, ax = plt.subplots()
+
+            # Corps (tronc)
+            ax.plot([0, 0], [1, 2], linewidth=4)
+
+            # Bras (moins de mouvement si AVC)
+            if controle < 50:
+                ax.plot([0, -0.3], [1.8, 1.5], linewidth=3)  # figé
+            else:
+                ax.plot([0, -0.3*np.sin(t/10)], [1.8, 1.5], linewidth=3)
+
+            # ======================
+            # JAMBES (MARCHE)
+            # ======================
+
+            angle = np.sin(t / 10)
+
+            # jambe saine (gauche)
+            x_leg1 = 0.3 * np.sin(t / 10)
+            y_leg1 = 0.5
+
+            # jambe atteinte (droite)
+            if controle < 50:
+                # circumduction simulée
+                x_leg2 = 0.5 * np.sin(t / 10) + 0.2
+                y_leg2 = 0.3
+            else:
+                x_leg2 = 0.3 * np.sin(t / 10 + np.pi)
+                y_leg2 = 0.5
+
+            # spasticité → jambe raide
+            if spasticite > 60:
+                y_leg2 = 0.2
+
+            # dessin jambes
+            ax.plot([0, x_leg1], [1, y_leg1], linewidth=4)
+            ax.plot([0, x_leg2], [1, y_leg2], linewidth=4)
+
+            # tête
+            circle = plt.Circle((0, 2.2), 0.2)
+            ax.add_patch(circle)
+
+            # réglages affichage
+            ax.set_xlim(-1, 1)
+            ax.set_ylim(0, 2.5)
+            ax.axis("off")
+
+            placeholder.pyplot(fig)
+
+            time.sleep(0.05)
+
+    # ==============================
+    # 🧠 INTERPRÉTATION
+    # ==============================
+
+    st.write("---")
+    st.write("🧠 Analyse kiné")
+
+    if controle < 50:
+        st.write("➡️ Déficit contrôle moteur → circumduction")
+
+    if spasticite > 60:
+        st.write("➡️ Spasticité → jambe raide en extension")
+
+    if score < 50:
+        st.error("Marche pathologique")
 
     # ==============================
     # 🎮 CYCLE DE MARCHE (ANIMATION SIMPLE)
