@@ -1,58 +1,108 @@
 import streamlit as st
-import random
 
-st.title("🧠 Générateur de cas clinique AVC (IA)")
+st.title("🧠 Simulateur kiné AVC interactif (V1)")
 
-nom = st.text_input("Nom du patient")
-age = st.slider("Âge", 40, 100, 70)
+st.write("Modélisation fonctionnelle d'un patient AVC et effets des interventions kinésithérapiques.")
 
-niveau = st.selectbox("Sévérité de l'AVC", ["Léger", "Modéré", "Sévère"])
+# ----------------------------
+# 1. INITIALISATION PATIENT
+# ----------------------------
 
-if st.button("Générer cas clinique"):
+if "patient" not in st.session_state:
 
-    st.subheader("👤 Patient")
+    st.session_state.patient = {
+        "motricite_MS": 40,   # membre supérieur
+        "motricite_MI": 45,   # membre inférieur
+        "equilibre": 40,
+        "spasticite": 60,
+        "controle_moteur": 35
+    }
 
-    st.write(f"Nom : {nom}")
-    st.write(f"Âge : {age}")
-    st.write(f"Sévérité : {niveau}")
+patient = st.session_state.patient
 
-    st.subheader("🧠 Cas clinique généré")
+# ----------------------------
+# 2. AFFICHAGE ETAT ACTUEL
+# ----------------------------
 
-    # logique simple mais cohérente
-    if niveau == "Léger":
-        deficits = [
-            "Faiblesse légère d’un membre supérieur",
-            "Légers troubles du langage",
-            "Fatigabilité à l’effort"
-        ]
-        evolution = "Bonne récupération attendue avec rééducation"
+st.subheader("👤 État fonctionnel du patient (0 = mauvais / 100 = normal)")
 
-    elif niveau == "Modéré":
-        deficits = [
-            "Hémiparésie partielle",
-            "Aphasie modérée",
-            "Troubles de la marche"
-        ]
-        evolution = "Récupération partielle possible avec séquelles"
+st.write("**Motricité membre supérieur :**", patient["motricite_MS"])
+st.write("**Motricité membre inférieur :**", patient["motricite_MI"])
+st.write("**Équilibre :**", patient["equilibre"])
+st.write("**Contrôle moteur :**", patient["controle_moteur"])
+st.write("**Spasticité (inverse fonctionnel) :**", patient["spasticite"])
 
-    else:
-        deficits = [
-            "Hémiplégie importante",
-            "Aphasie sévère",
-            "Perte d’autonomie"
-        ]
-        evolution = "Pronostic réservé, dépend de la prise en charge"
+# ----------------------------
+# 3. TRADUCTION CLINIQUE
+# ----------------------------
 
-    st.subheader("⚠️ Déficits")
+st.subheader("🧠 Lecture clinique")
 
-    for d in deficits:
-        st.write("• " + d)
+if patient["motricite_MI"] < 50:
+    st.write("➡️ Hémiparésie des membres inférieurs")
+    st.write("➡️ Risque de circumduction / instabilité à la marche")
 
-    st.subheader("📈 Évolution probable")
-    st.write(evolution)
+if patient["spasticite"] > 50:
+    st.write("➡️ Spasticité modérée à importante")
+    st.write("➡️ Risque de pied équin et raideur")
 
-    st.subheader("🧾 Synthèse IA")
-    st.write(
-        f"Patient de {age} ans présentant un AVC {niveau.lower()} avec "
-        f"atteinte neurologique compatible. Nécessite prise en charge neuro-rééducative."
-    )
+if patient["equilibre"] < 50:
+    st.write("➡️ Trouble de l'équilibre")
+    st.write("➡️ Risque de chute augmenté")
+
+# ----------------------------
+# 4. INTERVENTIONS KINE
+# ----------------------------
+
+st.subheader("🎮 Interventions kinésithérapiques")
+
+col1, col2, col3 = st.columns(3)
+
+# --- Equilibre ---
+with col1:
+    if st.button("Travail équilibre"):
+        patient["equilibre"] += 10
+        patient["controle_moteur"] += 5
+        patient["spasticite"] -= 5
+        st.success("✔ Amélioration de l'équilibre")
+
+# --- Renforcement ---
+with col2:
+    if st.button("Renforcement moteur"):
+        patient["motricite_MS"] += 8
+        patient["motricite_MI"] += 8
+        patient["controle_moteur"] += 5
+        st.success("✔ Amélioration motricité")
+
+# --- Inhibition spasticité ---
+with col3:
+    if st.button("Inhibition spasticité"):
+        patient["spasticite"] -= 15
+        patient["controle_moteur"] += 5
+        st.success("✔ Diminution spasticité")
+
+# ----------------------------
+# 5. LIMITES DES VALEURS
+# ----------------------------
+
+for key in patient:
+    if patient[key] > 100:
+        patient[key] = 100
+    if patient[key] < 0:
+        patient[key] = 0
+
+# ----------------------------
+# 6. RESET PATIENT
+# ----------------------------
+
+st.subheader("🔄 Réinitialisation")
+
+if st.button("Reset patient"):
+    st.session_state.patient = {
+        "motricite_MS": 40,
+        "motricite_MI": 45,
+        "equilibre": 40,
+        "spasticite": 60,
+        "controle_moteur": 35
+    }
+    st.success("Patient réinitialisé")
