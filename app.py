@@ -56,7 +56,34 @@ if mode == "🦶 Marche":
     # mini “animation symbolique”
     steps = ["🦶——🦶", "🦶—🦶", "🦶🦶"]
     st.write("Simulation visuelle :", random.choice(steps))
+st.subheader("🎞️ Analyse visuelle de la marche")
 
+marche = (p["controle_selectif"] + p["equilibre"]) / 2
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.write("Phase d'appui")
+    if marche > 70:
+        st.write("🟢 stable")
+    elif marche > 50:
+        st.write("🟠 instable")
+    else:
+        st.write("🔴 très instable")
+
+with col2:
+    st.write("Phase oscillante")
+    if p["controle_selectif"] > 50:
+        st.write("🟢 contrôle correct")
+    else:
+        st.write("🔴 circumduction / bloc")
+
+with col3:
+    st.write("Bras")
+    if p["synergie_extension_MI"] > 60:
+        st.write("🔴 absence de balancement")
+    else:
+        st.write("🟢 balancement partiel")
 # =========================================================
 # 📈 2. EVOLUTION DANS LE TEMPS
 # =========================================================
